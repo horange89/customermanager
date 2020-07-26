@@ -7,7 +7,7 @@
 * Open JDK 1.8
 * H2Database
 * JPA
-* JUNIT 4
+* JUNIT4
 
 ## 문제해결 방법
 
@@ -22,7 +22,7 @@
 ### 빌드
 
 1. IntelliJ에서 Git Clone으로 임포트 합니다.
-2. Proejct Setting으로 들어가서 JDK를 설정해줍니다.
+2. Setting으로 들어가서 SDK11, Language 11, Gradle JVM 11로 설정해줍니다.
 3. IntelliJ의 우측에 Gradle 탭의 Refresh 버튼을 통해서 라이브러리의 의존성을 임포트 해줍니다.
 4. Gradle Project 패널 안에 있는 Tasks 의 build를 더블클릭합니다.
 5. Gradle Project 패널 안에 있는 application의 booRun을 통해서 프로젝트를 실행합니다.
