@@ -115,14 +115,18 @@ public class CustomerManageControllerTests {
 
         given(customerManageService.findSumAmountBranch(customerManageInDTO)).willReturn(customerManageOutDTO);
 
-
         mockMvc.perform(get("/SumAmountBranch").param("brName", "판교점")).andExpect(status().isOk());
 
-        CustomerManageDTO customerManageInDTO2 = CustomerManageDTO.builder().brName("분당점").build();
+    }
 
-        given(customerManageService.findSumAmountBranch(customerManageInDTO2)).willReturn(null);
+    // 4번 기능
+    @Test
+    public void findSumAmountExceptBranch() throws Exception {
 
-        // 예외처리 테스트
+        CustomerManageDTO customerManageInDTO = CustomerManageDTO.builder().brName("분당점").build();
+
+        given(customerManageService.findSumAmountBranch(customerManageInDTO)).willReturn(null);
+
         mockMvc.perform(get("/SumAmountBranch").param("brName", "분당점")).andDo(print());
     }
 }
