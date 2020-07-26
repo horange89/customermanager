@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- mybatis-3-mapper.dtd에 주목 -->
+<mapper namespace="CustomerTransaction">
+
+    <!-- API 1번 기능 쿼리-->
+    <select id="findMaxSumAmountCustomer" resultType="CustomerManageDTO">
+        SELECT year, name, acct_no, sumamt
+        FROM (
+                SELECT  ROW_NUMBER() OVER(PARTITION BY year ORDER BY sumamt DESC) as rnum,
+                year,
+                name,
+                acct_no,
+                sumamt
+                FROM (
+                        SELECT SUBSTR(tr_date, 0, 4) as year, A.name, A.acct_no, SUM(price)-SUM(fees) as sumamt
+                        FROM account A,
+                        transaction B
+                        WHERE A.acct_no = B.acct_no
+                        AND B.cancle_yn != 'Y'
+                        GROUP BY  year, A.name, A.acct_no
+                        )
+                )
+        WHERE rnum =1
+        AND year between 2018 and 2019
+    </select>
+
+    <!-- API 2번 기능 쿼리-->
+    <select id="findNoneTransactionCustomer" resultType="CustomerManageDTO">
+        SELECT year, name, acct_no
+          FROM
+               (SELECT SUBSTR(tr_date, 0, 4) AS year, name, A.acct_no
+                  FROM  account A,
+                        transaction B
+                 WHERE A.acct_no = B.acct_no
+                   AND B.cancle_yn = 'Y'
+                   AND tr_date BETWEEN '20180101' AND '20191231'
+                 UNION
+                SELECT SUBSTR(tr_date, 0, 4) AS year, name, A.acct_no
+                  FROM  account A,
+                        transaction B
+                 WHERE A.acct_no = B.acct_no
+                   AND  (tr_date <![CDATA[<]]> '20180101'  OR tr_date > '20191231')
+                )
+        GROUP BY year, name, acct_no
+    </select>
+
+    <!-- API 3번 기능 쿼리-->
+    <select id="findMaxSumAmountBranch" resultType="CustomerManageDTO">
+        SELECT SUBSTR(tr_date, 0, 4) AS year, br_Code, br_name, SUM(price)-SUM(fees) AS sumamt
+          FROM account A,
+               branch B,
+               transaction C
+         WHERE A.branch = B.br_code
+           AND A.acct_no = C.acct_no
+           AND C.cancle_yn = 'N'
+        GROUP BY year, branch, br_name
+        ORDER BY year, sumamt DESC
+    </select>
+
+    <!-- API 4번 기능 쿼리-->
+    <select id="findSumAmountBranch" resultType="CustomerManageDTO" parameterType="CustomerManageDTO">
+        SELECT branch as br_code, br_name, sumamt
+          FROM
+               (SELECT 'A' AS branch, '판교점' AS br_name, SUM(price)-SUM(fees) AS sumamt
+                  FROM account A,
+                       branch B,
+                       transaction C
+                 WHERE A.branch = B.br_code
+                   AND A.acct_no = C.acct_no
+                   AND C.cancle_yn = 'N'
+                   AND (B.br_code= 'A' OR B.br_code = 'B')
+                 UNION
+                SELECT 'B' AS branch, '분당점' AS br_name, null
+                 UNION
+                SELECT branch, br_name, SUM(price)-SUM(fees) AS sumamt
+                  FROM account A,
+                       branch B,
+                       transaction C
+                 WHERE A.branch = B.br_code
+                   AND A.acct_no = C.acct_no
+                   AND C.cancle_yn = 'N'
+                   AND B.br_code != 'A' AND B.br_code != 'B'
+                GROUP BY branch, br_name
+               )
+        WHERE br_name = #{brName}
+    </select>
+
+
+</mapper>
